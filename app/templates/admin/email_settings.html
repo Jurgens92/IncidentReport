@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Email Settings - Security System</title>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Email Settings - Security System</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+    
+            body {
+                min-height: 100vh;
+                background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+                padding: 2rem;
+            }
+    
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+    
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2rem;
+                padding: 1.5rem;
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            }
+    
+            h2 {
+                color: #2563eb;
+                font-size: 1.75rem;
+                font-weight: 600;
+            }
+    
+            .content-box {
+                background: white;
+                border-radius: 16px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+                padding: 2rem;
+                margin-bottom: 2rem;
+            }
+    
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+    
+            .form-group label {
+                display: block;
+                margin-bottom: 0.5rem;
+                color: #374151;
+                font-weight: 500;
+            }
+    
+            input[type="text"],
+            input[type="number"],
+            input[type="password"],
+            input[type="email"] {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                border: 2px solid #e5e7eb;
+                border-radius: 8px;
+                font-size: 1rem;
+                transition: all 0.2s ease;
+                background-color: #f9fafb;
+                color: #1f2937;
+            }
+    
+            input[type="text"]:focus,
+            input[type="number"]:focus,
+            input[type="password"]:focus,
+            input[type="email"]:focus {
+                outline: none;
+                border-color: #2563eb;
+                background-color: white;
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            }
+    
+            .button {
+                padding: 0.75rem 1.5rem;
+                border-radius: 8px;
+                font-size: 1rem;
+                font-weight: 500;
+                text-decoration: none;
+                cursor: pointer;
+                border: none;
+                transition: all 0.2s ease;
+            }
+    
+            .primary {
+                background: #2563eb;
+                color: white;
+            }
+    
+            .primary:hover {
+                background: #1d4ed8;
+                transform: translateY(-1px);
+            }
+    
+            @media (max-width: 768px) {
+                body {
+                    padding: 1rem;
+                }
+    
+                .header {
+                    flex-direction: column;
+                    gap: 1rem;
+                    text-align: center;
+                }
+    
+                .button {
+                    width: 100%;
+                    text-align: center;
+                }
+            }
+        </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Email Settings</h2>
+            <a href="{{ url_for('dashboard') }}" class="button primary">Back to Dashboard</a>
+        </div>
+
+        <div class="content-box">
+            <form method="POST">
+                <div class="form-group">
+                    <label for="smtp_server">SMTP Server</label>
+                    <input type="text" id="smtp_server" name="smtp_server" 
+                           value="{{ settings.smtp_server or '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="smtp_port">SMTP Port</label>
+                    <input type="number" id="smtp_port" name="smtp_port" 
+                           value="{{ settings.smtp_port or '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="smtp_username">SMTP Username</label>
+                    <input type="text" id="smtp_username" name="smtp_username" 
+                           value="{{ settings.smtp_username or '' }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="smtp_password">SMTP Password</label>
+                    <input type="password" id="smtp_password" name="smtp_password" 
+                           placeholder="Leave empty to keep current password">
+                </div>
+                <div class="form-group">
+                    <label for="from_address">From Email Address</label>
+                    <input type="email" id="from_address" name="from_address" 
+                           value="{{ settings.from_address or '' }}" required>
+                </div>
+                <button type="submit" class="button primary">Save Settings</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

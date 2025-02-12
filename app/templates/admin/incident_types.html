@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Incident Types - Security System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .content-box {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="email"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background-color: #f9fafb;
+            color: #1f2937;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus {
+            outline: none;
+            border-color: #2563eb;
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        .danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .danger:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #374151;
+            font-weight: 600;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: #f9fafb;
+        }
+
+        .email-form {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .email-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        h2 {
+            color: #2563eb;
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .button {
+                width: 100%;
+                text-align: center;
+                margin-bottom: 0.5rem;
+            }
+
+            .email-form {
+                flex-direction: column;
+            }
+
+            .email-input {
+                width: 100%;
+            }
+
+            .table-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Manage Incident Types</h2>
+            <a href="{{ url_for('dashboard') }}" class="button primary">Back to Dashboard</a>
+        </div>
+
+        <div class="content-box">
+            <form method="POST">
+                <div class="form-group">
+                    <label for="incident-type">Incident Type</label>
+                    <input type="text" id="incident-type" name="name" placeholder="Enter incident type" required>
+                </div>
+                <div class="form-group">
+                    <label for="email-to">Notification Email(s)</label>
+                    <input type="text" id="email-to" name="email_to" 
+                           placeholder="Enter email address(es) separated by commas">
+                    <small style="color: #6b7280; display: block; margin-top: 0.5rem;">
+                        Multiple email addresses can be added using commas (e.g., email1@example.com, email2@example.com)
+                    </small>
+                </div>
+                <button type="submit" name="add_type" class="button primary">Add Incident Type</button>
+            </form>
+        </div>
+
+        <div class="content-box">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Notification Emails</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for type in incident_types %}
+                    <tr>
+                        <td>{{ type.name }}</td>
+                        <td>
+                            <form method="POST" class="email-form">
+                                <input type="hidden" name="type_id" value="{{ type.id }}">
+                                <input type="text" name="email_to" value="{{ type.email_to or '' }}" 
+                                       class="email-input" placeholder="Enter email address(es)">
+                                <button type="submit" name="update_email" class="button primary">Update</button>
+                            </form>
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="type_id" value="{{ type.id }}">
+                                    <button type="submit" name="delete_type" class="button danger">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not incident_types %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 2rem;">
+                            No incident types have been added yet
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
