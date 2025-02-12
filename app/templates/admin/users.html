@@ -3,6 +3,7 @@
 <head>
     <title>Manage Users - Security System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
 </head>
 <body>
     <div class="container">
@@ -49,6 +50,7 @@
                         </td>
                         <td>
                             {% if user != current_user %}
+                            <button onclick="openPasswordModal({{ user.id }}, '{{ user.username }}')" class="button primary">Change Password</button>
                             <form method="POST" style="display: inline;">
                                 <input type="hidden" name="user_id" value="{{ user.id }}">
                                 <button type="submit" name="delete_user" class="button danger">Delete</button>
@@ -66,5 +68,66 @@
             </table>
         </div>
     </div>
+
+    <!-- Password Change Modal -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePasswordModal()">&times;</span>
+            <h3>Change Password</h3>
+            <p id="modalUsername"></p>
+            <form id="passwordChangeForm" method="POST">
+                <div class="form-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="new_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" required>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="button cancel-btn" onclick="closePasswordModal()">Cancel</button>
+                    <button type="submit" class="button primary">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('passwordModal');
+        const form = document.getElementById('passwordChangeForm');
+        const newPasswordInput = document.getElementById('new_password');
+        const confirmPasswordInput = document.getElementById('confirm_password');
+
+        function openPasswordModal(userId, username) {
+            modal.style.display = 'block';
+            document.getElementById('modalUsername').textContent = `Change password for: ${username}`;
+            form.action = `/admin/change_user_password/${userId}`;
+            
+            // Clear any existing values
+            newPasswordInput.value = '';
+            confirmPasswordInput.value = '';
+        }
+
+        function closePasswordModal() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal if clicking outside of it
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closePasswordModal();
+            }
+        }
+
+        // Password confirmation validation
+        form.onsubmit = function(e) {
+            if (newPasswordInput.value !== confirmPasswordInput.value) {
+                e.preventDefault();
+                alert('Passwords do not match!');
+                return false;
+            }
+            return true;
+        }
+    </script>
 </body>
 </html>

@@ -172,3 +172,43 @@ def manage_email_settings():
         flash('Email settings updated successfully')
         
     return render_template('admin/email_settings.html', settings=settings)
+
+@app.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        current_password = request.form['current_password']
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+        
+        if not current_user.check_password(current_password):
+            flash('Current password is incorrect')
+            return redirect(url_for('change_password'))
+            
+        if new_password != confirm_password:
+            flash('New passwords do not match')
+            return redirect(url_for('change_password'))
+            
+        current_user.set_password(new_password)
+        db.session.commit()
+        flash('Password updated successfully')
+        return redirect(url_for('dashboard'))
+        
+    return render_template('change_password.html')
+
+@app.route('/admin/change_user_password/<int:user_id>', methods=['POST'])
+@login_required
+def change_user_password(user_id):
+    if not current_user.is_admin:
+        flash('Admin access required')
+        return redirect(url_for('dashboard'))
+        
+    user = User.query.get_or_404(user_id)
+    new_password = request.form.get('new_password')
+    
+    if new_password:
+        user.set_password(new_password)
+        db.session.commit()
+        flash(f'Password updated for user {user.username}')
+    
+    return redirect(url_for('manage_users'))
