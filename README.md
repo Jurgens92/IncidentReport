@@ -36,8 +36,8 @@ A web-based incident reporting and management system built with Flask, designed 
 
 ## Default Login
 
-Username: admin
-Password: admin
+- Username: admin
+- Password: admin
 
 Important: Change the default admin password after first login.
 
