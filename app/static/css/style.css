@@ -335,3 +335,44 @@ tr:hover td {
         width: 100%;
     }
 }
+
+/* Login Form Specific Styles */
+.login-form {
+    background: var(--surface);
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+}
+
+.login-form h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-form button {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    margin-top: 1.5rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.login-form button:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+/* Center the form vertically on taller screens */
+@media (min-height: 800px) {
+    .login-form {
+        margin: 15vh auto;
+    }
+}
