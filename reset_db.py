@@ -2,7 +2,7 @@ from app import app, db
 from app.models import User, Personnel, IncidentType
 from app.models import EmailSettings
 
-# Create an application context
+# Create an application context 
 with app.app_context():
     # Drop and recreate all tables
     db.drop_all()
