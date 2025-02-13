@@ -22,24 +22,29 @@ class User(UserMixin, db.Model):
 class Personnel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    # Remove the backref here since we'll define it in the Incident model
-    incidents = db.relationship('Incident', back_populates='reporter')
+    cell_number = db.Column(db.String(20))
+    # Add passive_deletes=True to prevent cascade deletion
+    incidents = db.relationship('Incident', back_populates='reporter', passive_deletes=True)
+
 
 class IncidentType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     email_to = db.Column(db.String(256))
-    incidents = db.relationship('Incident', back_populates='incident_type')
+    # Add passive_deletes=True to prevent cascade deletion
+    incidents = db.relationship('Incident', back_populates='incident_type', passive_deletes=True)
 
 class Incident(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    type_id = db.Column(db.Integer, db.ForeignKey('incident_type.id'))
+    type_id = db.Column(db.Integer, db.ForeignKey('incident_type.id', ondelete='SET NULL'), nullable=True)
+    # Add these fields to store original values
+    type_name = db.Column(db.String(64))  # Store incident type name
+    reporter_name = db.Column(db.String(64))  # Store personnel name
     description = db.Column(db.String(500))
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    personnel_id = db.Column(db.Integer, db.ForeignKey('personnel.id'))
+    personnel_id = db.Column(db.Integer, db.ForeignKey('personnel.id', ondelete='SET NULL'), nullable=True)
     
-    # Define relationships with back_populates instead of backref
     incident_type = db.relationship('IncidentType', back_populates='incidents')
     reporter = db.relationship('Personnel', back_populates='incidents')
 
@@ -50,3 +55,10 @@ class EmailSettings(db.Model):
     smtp_username = db.Column(db.String(128))
     smtp_password = db.Column(db.String(128))
     from_address = db.Column(db.String(128))
+
+class LoginLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64))
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    success = db.Column(db.Boolean, default=False)
+    ip_address = db.Column(db.String(45))  # IPv6 can be up to 45 characters

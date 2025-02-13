@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Logs - Security System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Login Logs</h2>
+            <a href="{{ url_for('dashboard') }}" class="button primary">Back to Dashboard</a>
+        </div>
+
+        <div class="content-box">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Username</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs.items %}
+                    <tr>
+                        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td>{{ log.username }}</td>
+                        <td>{{ log.ip_address }}</td>
+                        <td>
+                            <span class="badge {% if log.success %}badge-success{% else %}badge-failure{% endif %}">
+                                {{ 'Success' if log.success else 'Failed' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Pagination controls -->
+            <div class="pagination">
+                {% if logs.has_prev %}
+                    <a href="{{ url_for('login_logs', page=logs.prev_num) }}" class="button">&laquo; Previous</a>
+                {% endif %}
+                
+                <span class="current-page">
+                    Page {{ logs.page }} of {{ logs.pages }}
+                </span>
+                
+                {% if logs.has_next %}
+                    <a href="{{ url_for('login_logs', page=logs.next_num) }}" class="button">Next &raquo;</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

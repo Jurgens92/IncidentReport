@@ -17,6 +17,7 @@
                 <a href="{{ url_for('manage_incident_types') }}" class="button primary">Manage Incident Types</a>
                 <a href="{{ url_for('manage_email_settings') }}" class="button primary">Email Settings</a>
                 <a href="{{ url_for('change_password') }}" class="button primary">Change Password</a>
+                <a href="{{ url_for('login_logs') }}" class="button primary">View Login Logs</a>
                 {% endif %}
                 <a href="{{ url_for('report_incident') }}" class="button primary">Report Incident</a>
                 <a href="{{ url_for('logout') }}" class="button danger">Logout</a>
@@ -37,8 +38,8 @@
                     {% for incident in incidents %}
                     <tr>
                         <td>{{ incident.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-                        <td>{{ incident.reporter.name }}</td>
-                        <td>{{ incident.incident_type.name }}</td>
+                        <td>{{ incident.reporter_name }}</td>
+                        <td>{{ incident.type_name }}</td>
                         <td>{{ incident.description }}</td>
                     </tr>
                     {% endfor %}

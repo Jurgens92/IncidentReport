@@ -12,6 +12,16 @@
         </div>
 
         <div class="content-box">
+            <div class="import-export-controls">
+                <a href="{{ url_for('export_incident_types') }}" class="button primary">Export Incident Types</a>
+                <form method="POST" action="{{ url_for('import_incident_types') }}" enctype="multipart/form-data" style="display: inline;">
+                    <input type="file" name="file" accept=".csv" required>
+                    <button type="submit" class="button primary">Import Incident Types</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="content-box">
             <form method="POST">
                 <div class="form-group">
                     <label for="incident-type">Incident Type</label>

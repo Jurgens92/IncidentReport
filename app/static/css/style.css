@@ -427,3 +427,47 @@ tr:hover td {
     color: var(--text-secondary);
     margin-bottom: 1.5rem;
 }
+
+.import-export-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.import-export-controls input[type="file"] {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.badge-success {
+    background-color: #10B981;
+    color: white;
+}
+
+.badge-failure {
+    background-color: #EF4444;
+    color: white;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+}
+
+.current-page {
+    padding: 0.5rem 1rem;
+    background-color: #f3f4f6;
+    border-radius: 4px;
+}
