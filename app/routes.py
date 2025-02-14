@@ -22,10 +22,17 @@ def login():
             login_user(user)
             success = True
         
-        # Get the real IP address checking headers
+        # Enhanced IP address detection
+        ip_address = None
+        # Try X-Forwarded-For first
         if request.headers.getlist("X-Forwarded-For"):
-            ip_address = request.headers.getlist("X-Forwarded-For")[0]
-        else:
+            forwarded_ips = request.headers.getlist("X-Forwarded-For")[0].split(',')
+            ip_address = forwarded_ips[0].strip()
+        # Try X-Real-IP next
+        elif request.headers.get("X-Real-IP"):
+            ip_address = request.headers.get("X-Real-IP")
+        # Fall back to remote_addr
+        if not ip_address:
             ip_address = request.remote_addr
             
         # Log the login attempt
