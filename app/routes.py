@@ -44,7 +44,9 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    incidents = Incident.query.join(IncidentType, isouter=True).join(Personnel, isouter=True).all()
+    incidents = Incident.query.join(IncidentType, isouter=True) \
+        .join(Personnel, isouter=True) \
+        .order_by(Incident.timestamp.desc()).all()
     return render_template('dashboard.html', incidents=incidents)
 
 @app.route('/report_incident', methods=['GET', 'POST'])
