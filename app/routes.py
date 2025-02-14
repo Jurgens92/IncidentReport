@@ -21,12 +21,18 @@ def login():
         if user and user.check_password(request.form['password']):
             login_user(user)
             success = True
+        
+        # Get the real IP address checking headers
+        if request.headers.getlist("X-Forwarded-For"):
+            ip_address = request.headers.getlist("X-Forwarded-For")[0]
+        else:
+            ip_address = request.remote_addr
             
         # Log the login attempt
         log_entry = LoginLog(
             username=request.form.get('username', ''),
             success=success,
-            ip_address=request.remote_addr
+            ip_address=ip_address
         )
         db.session.add(log_entry)
         db.session.commit()
