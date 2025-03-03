@@ -496,3 +496,23 @@ td form .button.danger {
     background: #475569;
     transform: translateY(-1px);
 }
+
+.success {
+    background: #10B981;  /* Green color */
+    color: white;
+}
+
+.success:hover {
+    background: #059669;  /* Slightly darker green on hover */
+    transform: translateY(-1px);
+}
+
+.button.success {
+    background: #10B981 !important;  /* Green color with !important to override */
+    color: white;
+}
+
+.button.success:hover {
+    background: #059669 !important;  /* Darker green on hover */
+    transform: translateY(-1px);
+}

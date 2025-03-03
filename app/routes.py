@@ -502,3 +502,28 @@ def resolution_history(incident_id):
             entry.unresolved_by_username = "N/A"
     
     return render_template('resolution_history.html', incident=incident, history=history)
+
+@app.route('/admin/delete_incident/<int:incident_id>', methods=['POST'])
+@login_required
+def delete_incident(incident_id):
+    if not current_user.is_admin:
+        flash('Admin access required')
+        return redirect(url_for('dashboard'))
+    
+    incident = Incident.query.get_or_404(incident_id)
+    
+    # Log the deletion
+    log_entry = ActionLog(
+        incident_id=incident.id,
+        user_id=current_user.id,
+        action="Delete",
+        details=f"Deleted incident: {incident.type_name} reported by {incident.reporter_name}"
+    )
+    db.session.add(log_entry)
+    
+    # Delete the incident
+    db.session.delete(incident)
+    db.session.commit()
+    
+    flash('Incident deleted successfully')
+    return redirect(url_for('dashboard'))
