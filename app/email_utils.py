@@ -52,7 +52,7 @@ Description:
             
     except Exception as e:
         print(f"Failed to send email: {str(e)}")
-        raise
+        # Don't raise the exception, just log it
 
 def send_resolution_email(incident):
     """Send email notification for a resolved incident."""
@@ -107,4 +107,4 @@ Resolution Details: {incident.resolution}
             
     except Exception as e:
         print(f"Failed to send resolution email: {str(e)}")
-        raise
+        # Don't raise the exception, just log it
