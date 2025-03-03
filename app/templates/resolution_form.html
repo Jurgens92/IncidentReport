@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resolve Incident - Security System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Resolve Incident</h2>
+            <a href="{{ url_for('dashboard') }}" class="button primary">Back to Dashboard</a>
+        </div>
+
+        <div class="content-box" style="max-width: 600px; margin: 0 auto;">
+            <div class="incident-details">
+                <h3>Incident Details</h3>
+                <p><strong>Date/Time:</strong> {{ incident.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p><strong>Type:</strong> {{ incident.type_name }}</p>
+                <p><strong>Reporter:</strong> {{ incident.reporter_name }}</p>
+                <p><strong>Description:</strong> {{ incident.description }}</p>
+            </div>
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label for="personnel">Resolved By</label>
+                    <select id="personnel" name="personnel_id" required>
+                        <option value="" disabled selected>Select name</option>
+                        {% for person in personnel %}
+                        <option value="{{ person.id }}">{{ person.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="resolution">Resolution</label>
+                    <textarea 
+                        id="resolution" 
+                        name="resolution" 
+                        placeholder="Describe how the incident was resolved..."
+                        required
+                        style="min-height: 100px;"
+                    ></textarea>
+                </div>
+            
+                <div class="button-group" style="max-width: 300px; margin: 1rem auto;">
+                    <a href="{{ url_for('dashboard') }}" class="button cancel-btn">Cancel</a>
+                    <button type="submit" class="button submit-btn">Submit Resolution</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

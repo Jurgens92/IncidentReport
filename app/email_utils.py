@@ -53,3 +53,58 @@ Description:
     except Exception as e:
         print(f"Failed to send email: {str(e)}")
         raise
+
+def send_resolution_email(incident):
+    """Send email notification for a resolved incident."""
+    # Skip if no email addresses configured
+    if not incident.incident_type.email_to:
+        return
+    
+    # Get email settings
+    settings = EmailSettings.query.first()
+    if not settings or not settings.smtp_server:
+        print("Email settings not configured")
+        return
+
+    # Parse recipient email addresses
+    recipients = [addr.strip() for addr in incident.incident_type.email_to.split(',') if addr.strip()]
+    if not recipients:
+        return
+
+    # Create message
+    msg = MIMEMultipart()
+    msg['From'] = settings.from_address
+    msg['To'] = ', '.join(recipients)
+    msg['Subject'] = f"RESOLVED: {incident.incident_type.name} Incident"
+
+    # Create message body
+    body = f"""
+Incident Resolved
+
+Original Incident:
+Date/Time: {incident.timestamp.strftime('%Y-%m-%d %H:%M')}
+Type: {incident.incident_type.name}
+Reported By: {incident.reporter_name}
+Description: {incident.description}
+
+Resolution:
+Date/Time: {incident.resolved_timestamp.strftime('%Y-%m-%d %H:%M')}
+Resolved By: {incident.resolved_by}
+Resolution Details: {incident.resolution}
+"""
+    msg.attach(MIMEText(body, 'plain'))
+
+    # Connect to SMTP server and send email
+    try:
+        with smtplib.SMTP(settings.smtp_server, settings.smtp_port) as server:
+            server.starttls()
+            
+            if settings.smtp_username and settings.smtp_password:
+                server.login(settings.smtp_username, settings.smtp_password)
+            
+            server.send_message(msg)
+            print(f"Resolution email sent successfully to {', '.join(recipients)}")
+            
+    except Exception as e:
+        print(f"Failed to send resolution email: {str(e)}")
+        raise

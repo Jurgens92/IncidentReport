@@ -471,3 +471,28 @@ tr:hover td {
     background-color: #f3f4f6;
     border-radius: 4px;
 }
+
+/* For side-by-side buttons in table cells */
+td .button + form {
+    margin-left: 0.5rem;
+}
+
+td form {
+    display: inline-block;
+}
+
+/* Make the Unresolve button smaller */
+td form .button.danger {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+}
+
+.secondary {
+    background: #64748b;
+    color: white;
+}
+
+.secondary:hover {
+    background: #475569;
+    transform: translateY(-1px);
+}

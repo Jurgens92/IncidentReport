@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Resolution History - Security System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Resolution History</h2>
+            <a href="{{ url_for('dashboard') }}" class="button primary">Back to Dashboard</a>
+        </div>
+
+        <div class="content-box" style="max-width: 800px; margin: 0 auto;">
+            <div class="incident-details">
+                <h3>Incident Information</h3>
+                <p><strong>Date/Time:</strong> {{ incident.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p><strong>Type:</strong> {{ incident.type_name }}</p>
+                <p><strong>Reporter:</strong> {{ incident.reporter_name }}</p>
+                <p><strong>Description:</strong> {{ incident.description }}</p>
+                
+                {% if incident.resolution %}
+                <h3>Current Resolution</h3>
+                <p><strong>Resolved Date/Time:</strong> {{ incident.resolved_timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p><strong>Resolved By:</strong> {{ incident.resolved_by }}</p>
+                <p><strong>Resolution:</strong> {{ incident.resolution }}</p>
+                {% endif %}
+            </div>
+            
+            {% if history %}
+            <h3>Previous Resolutions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Resolved Date</th>
+                        <th>Resolved By</th>
+                        <th>Resolution</th>
+                        <th>Unresolved Date</th>
+                        <th>Unresolved By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in history %}
+                    <tr>
+                        <td>{{ entry.resolved_timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ entry.resolved_by }}</td>
+                        <td>{{ entry.resolution_text }}</td>
+                        <td>{{ entry.unresolve_timestamp.strftime('%Y-%m-%d %H:%M') if entry.unresolve_timestamp else 'N/A' }}</td>
+                        <td>
+                            {% if entry.unresolved_by_user_id %}
+                                {{ entry.unresolved_by_username }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No resolution history available for this incident.</p>
+            {% endif %}
+            
+            <div class="button-group" style="max-width: 300px; margin: 1rem auto;">
+                <a href="{{ url_for('dashboard') }}" class="button primary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

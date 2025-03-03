@@ -32,6 +32,7 @@
                         <th>Reporter</th>
                         <th>Type</th>
                         <th>Description</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,11 +42,27 @@
                         <td>{{ incident.reporter_name }}</td>
                         <td>{{ incident.type_name }}</td>
                         <td>{{ incident.description }}</td>
+                        <td>
+                            {% if incident.resolution %}
+                                <a href="{{ url_for('view_resolution', incident_id=incident.id) }}" class="button primary">Resolved</a>
+                                {% if current_user.is_admin %}
+                                    <form method="POST" action="{{ url_for('unresolve_incident', incident_id=incident.id) }}" style="display: inline;">
+                                        <button type="submit" class="button danger">Unresolve</button>
+                                    </form>
+                                {% endif %}
+                            {% else %}
+                                <a href="{{ url_for('resolve_incident', incident_id=incident.id) }}" class="button primary">Resolve</a>
+                            {% endif %}
+                            
+                            {% if current_user.is_admin %}
+                                <a href="{{ url_for('resolution_history', incident_id=incident.id) }}" class="button secondary">History</a>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                     {% if not incidents %}
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 2rem;">No incidents reported yet</td>
+                        <td colspan="5" style="text-align: center; padding: 2rem;">No incidents reported yet</td>
                     </tr>
                     {% endif %}
                 </tbody>

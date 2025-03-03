@@ -1,11 +1,12 @@
 from flask import render_template, redirect, url_for, flash, request, send_file, make_response
 from flask_login import login_user, logout_user, login_required, current_user
 from app import app, db
-from app.models import User, Incident, Personnel, IncidentType, EmailSettings, LoginLog
-from app.email_utils import send_incident_email
+from app.models import User, Incident, Personnel, IncidentType, EmailSettings, LoginLog, ActionLog, ResolutionHistory
+from app.email_utils import send_incident_email, send_resolution_email
 import csv
 from io import StringIO
 from werkzeug.utils import secure_filename
+from datetime import datetime
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -395,3 +396,109 @@ def login_logs():
         page=page, per_page=50, error_out=False)
     
     return render_template('admin/login_logs.html', logs=logs)
+
+@app.route('/resolve_incident/<int:incident_id>', methods=['GET', 'POST'])
+@login_required
+def resolve_incident(incident_id):
+    incident = Incident.query.get_or_404(incident_id)
+    personnel = Personnel.query.all()  # Get all personnel for the dropdown
+    
+    # Check if already resolved
+    if incident.resolution:
+        return redirect(url_for('view_resolution', incident_id=incident_id))
+    
+    if request.method == 'POST':
+        # Get selected personnel
+        resolver_id = request.form.get('personnel_id')
+        resolver = Personnel.query.get(resolver_id)
+        
+        # Update the incident with resolution details
+        incident.resolution = request.form['resolution']
+        incident.resolved_by = resolver.name  # Use the personnel name
+        incident.resolved_timestamp = datetime.utcnow()
+        incident.resolved_by_user_id = current_user.id
+        
+        db.session.commit()
+        
+        # Send email notification
+        send_resolution_email(incident)
+        
+        flash('Incident has been resolved successfully')
+        return redirect(url_for('dashboard'))
+        
+    return render_template('resolution_form.html', incident=incident, personnel=personnel)
+
+@app.route('/view_resolution/<int:incident_id>')
+@login_required
+def view_resolution(incident_id):
+    incident = Incident.query.get_or_404(incident_id)
+    
+    # Check if the incident is resolved
+    if not incident.resolution:
+        flash('This incident has not been resolved yet')
+        return redirect(url_for('dashboard'))
+        
+    return render_template('resolution_details.html', incident=incident)
+
+@app.route('/unresolve_incident/<int:incident_id>', methods=['POST'])
+@login_required
+def unresolve_incident(incident_id):
+    # Check if user is admin
+    if not current_user.is_admin:
+        flash('Admin access required')
+        return redirect(url_for('dashboard'))
+        
+    incident = Incident.query.get_or_404(incident_id)
+    
+    # Check if the incident is resolved
+    if not incident.resolution:
+        flash('This incident is not marked as resolved')
+        return redirect(url_for('dashboard'))
+    
+    # Save the current resolution to history
+    resolution_history = ResolutionHistory(
+        incident_id=incident.id,
+        resolution_text=incident.resolution,
+        resolved_by=incident.resolved_by,
+        resolved_timestamp=incident.resolved_timestamp,
+        resolved_by_user_id=incident.resolved_by_user_id,
+        unresolve_timestamp=datetime.utcnow(),
+        unresolved_by_user_id=current_user.id
+    )
+    db.session.add(resolution_history)
+    
+    # Log the action
+    log_entry = ActionLog(
+        incident_id=incident.id,
+        user_id=current_user.id,
+        action="Unresolve",
+        details=f"Unmarked resolution that was entered by {incident.resolved_by}: {incident.resolution}"
+    )
+    db.session.add(log_entry)
+    
+    # Clear the resolution fields from the current incident
+    incident.resolution = None
+    incident.resolved_by = None
+    incident.resolved_timestamp = None
+    incident.resolved_by_user_id = None
+    
+    db.session.commit()
+    
+    flash('Incident has been marked as unresolved')
+    return redirect(url_for('dashboard'))
+
+@app.route('/resolution_history/<int:incident_id>')
+@login_required
+def resolution_history(incident_id):
+    incident = Incident.query.get_or_404(incident_id)
+    history = ResolutionHistory.query.filter_by(incident_id=incident_id).order_by(ResolutionHistory.resolved_timestamp.desc()).all()
+    
+    # Get usernames for unresolved_by IDs
+    for entry in history:
+        if entry.unresolved_by_user_id:
+            user = User.query.get(entry.unresolved_by_user_id)
+            entry.unresolved_by_username = user.username if user else "Unknown User"
+        else:
+            entry.unresolved_by_username = "N/A"
+    
+    return render_template('resolution_history.html', incident=incident, history=history)
