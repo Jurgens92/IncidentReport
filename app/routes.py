@@ -73,13 +73,24 @@ def report_incident():
         incident_type = IncidentType.query.get(request.form['type_id'])
         reporter = Personnel.query.get(request.form['personnel_id'])
         
+        # Get IP address - reusing the same logic as in the login route
+        ip_address = None
+        if request.headers.getlist("X-Forwarded-For"):
+            forwarded_ips = request.headers.getlist("X-Forwarded-For")[0].split(',')
+            ip_address = forwarded_ips[0].strip()
+        elif request.headers.get("X-Real-IP"):
+            ip_address = request.headers.get("X-Real-IP")
+        if not ip_address:
+            ip_address = request.remote_addr
+        
         incident = Incident(
             type_id=request.form['type_id'],
             type_name=incident_type.name,  # Store the type name
             reporter_name=reporter.name,    # Store the reporter name
             description=request.form['description'],
             user_id=current_user.id,
-            personnel_id=request.form['personnel_id']
+            personnel_id=request.form['personnel_id'],
+            ip_address=ip_address  # Store the IP address
         )
         db.session.add(incident)
         db.session.commit()

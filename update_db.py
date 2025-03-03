@@ -7,6 +7,7 @@ with app.app_context():
     db.session.execute(text('ALTER TABLE incident ADD COLUMN resolved_by VARCHAR(64)'))
     db.session.execute(text('ALTER TABLE incident ADD COLUMN resolved_timestamp DATETIME'))
     db.session.execute(text('ALTER TABLE incident ADD COLUMN resolved_by_user_id INTEGER REFERENCES user(id)'))
+    db.session.execute(text('ALTER TABLE incident ADD COLUMN ip_address VARCHAR(45)'))
     db.session.commit()
     
     print("Database updated successfully!")

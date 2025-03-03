@@ -54,6 +54,8 @@ class Incident(db.Model):
     incident_type = db.relationship('IncidentType', back_populates='incidents')
     reporter = db.relationship('Personnel', back_populates='incidents')
 
+    ip_address = db.Column(db.String(45))
+
 class EmailSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     smtp_server = db.Column(db.String(128))

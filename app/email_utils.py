@@ -33,6 +33,7 @@ New Incident Report
 Date/Time: {incident.timestamp.strftime('%Y-%m-%d %H:%M')}
 Type: {incident.incident_type.name}
 Reported By: {incident.reporter.name}
+Reported From IP: {incident.ip_address or 'Unknown'}
 
 Description:
 {incident.description}
