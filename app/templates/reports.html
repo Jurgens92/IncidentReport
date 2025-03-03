@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reports - Security System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Incident Reports</h2>
+            <div class="button-group">
+                <a href="{{ url_for('dashboard') }}" class="button primary">Back to Dashboard</a>
+                <a href="{{ url_for('detailed_reports') }}" class="button primary">Detailed Reports</a>
+                <a href="{{ url_for('export_reports') }}" class="button success">Export All</a>
+            </div>
+        </div>
+
+        <!-- Overview Statistics -->
+        <div class="content-box">
+            <h3>Overview</h3>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_incidents }}</div>
+                    <div class="stat-label">Total Incidents</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ resolved_incidents }}</div>
+                    <div class="stat-label">Resolved</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ unresolved_incidents }}</div>
+                    <div class="stat-label">Unresolved</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ recent_incidents }}</div>
+                    <div class="stat-label">Last 7 Days</div>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <a href="{{ url_for('export_reports', filter='all') }}" class="button primary">Export All</a>
+                <a href="{{ url_for('export_reports', filter='resolved') }}" class="button success">Export Resolved</a>
+                <a href="{{ url_for('export_reports', filter='unresolved') }}" class="button secondary">Export Unresolved</a>
+                <a href="{{ url_for('export_reports', filter='recent') }}" class="button primary">Export Last 30 Days</a>
+            </div>
+        </div>
+
+        <div class="report-sections">
+            <!-- Incidents by Type -->
+            <div class="content-box">
+                <h3>Incidents by Type</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for type_name, count in type_counts %}
+                        <tr>
+                            <td>{{ type_name }}</td>
+                            <td>{{ count }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not type_counts %}
+                        <tr>
+                            <td colspan="2" style="text-align: center;">No data available</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Monthly Trend -->
+            <div class="content-box">
+                <h3>Monthly Trend</h3>
+                <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="report-sections">
+            <!-- Top Reporters -->
+            <div class="content-box">
+                <h3>Top Reporters</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Personnel</th>
+                            <th>Incidents</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for name, count in top_reporters %}
+                        <tr>
+                            <td>{{ name }}</td>
+                            <td>{{ count }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not top_reporters %}
+                        <tr>
+                            <td colspan="2" style="text-align: center;">No data available</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Top Resolvers -->
+            <div class="content-box">
+                <h3>Top Resolvers</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Personnel</th>
+                            <th>Resolutions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for name, count in top_resolvers %}
+                        <tr>
+                            <td>{{ name }}</td>
+                            <td>{{ count }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not top_resolvers %}
+                        <tr>
+                            <td colspan="2" style="text-align: center;">No data available</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Incidents -->
+        <div class="content-box">
+            <h3>Recent Incidents</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Reporter</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for incident in recent %}
+                    <tr>
+                        <td>{{ incident.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ incident.type_name }}</td>
+                        <td>{{ incident.reporter_name }}</td>
+                        <td>
+                            <span class="badge {% if incident.resolution %}badge-success{% else %}badge-failure{% endif %}">
+                                {{ 'Resolved' if incident.resolution else 'Unresolved' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not recent %}
+                    <tr>
+                        <td colspan="4" style="text-align: center;">No incidents found</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Add Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        // Monthly trend chart
+        const monthlyData = [
+            {% for item in monthly_data %}
+                { month: '{{ item.month }}', count: {{ item.count }} },
+            {% endfor %}
+        ];
+        
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: monthlyData.map(item => item.month),
+                datasets: [{
+                    label: 'Incidents',
+                    data: monthlyData.map(item => item.count),
+                    backgroundColor: '#0091D5',
+                    borderColor: '#0082C0',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

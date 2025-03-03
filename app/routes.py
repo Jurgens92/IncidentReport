@@ -6,7 +6,8 @@ from app.email_utils import send_incident_email, send_resolution_email
 import csv
 from io import StringIO
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, timedelta
+from sqlalchemy import func, extract, case, and_
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -538,3 +539,187 @@ def delete_incident(incident_id):
     
     flash('Incident deleted successfully')
     return redirect(url_for('dashboard'))
+
+# Reporting
+
+@app.route('/reports')
+@login_required
+def reports():
+    if not current_user.is_admin:
+        flash('Admin access required')
+        return redirect(url_for('dashboard'))
+    # Summary statistics
+    total_incidents = Incident.query.count()
+    resolved_incidents = Incident.query.filter(Incident.resolution != None).count()
+    unresolved_incidents = total_incidents - resolved_incidents
+    recent_incidents = Incident.query.filter(
+        Incident.timestamp >= datetime.utcnow() - timedelta(days=7)
+    ).count()
+    
+    # Incidents by type
+    type_counts = db.session.query(
+        Incident.type_name, 
+        func.count(Incident.id)
+    ).group_by(Incident.type_name).all()
+    
+    # Recent incidents
+    recent = Incident.query.order_by(Incident.timestamp.desc()).limit(5).all()
+    
+    # Monthly trend (last 6 months)
+    monthly_data = []
+    current_month = datetime.utcnow().month
+    current_year = datetime.utcnow().year
+    
+    for i in range(6):
+        month = ((current_month - i - 1) % 12) + 1
+        year = current_year if month <= current_month else current_year - 1
+        
+        count = Incident.query.filter(
+            extract('month', Incident.timestamp) == month,
+            extract('year', Incident.timestamp) == year
+        ).count()
+        
+        month_name = datetime(year, month, 1).strftime('%b %Y')
+        monthly_data.append({'month': month_name, 'count': count})
+    
+    monthly_data.reverse()
+    
+    # Get top reporters and resolvers
+    top_reporters = db.session.query(
+        Incident.reporter_name,
+        func.count(Incident.id).label('count')
+    ).group_by(Incident.reporter_name).order_by(func.count(Incident.id).desc()).limit(5).all()
+    
+    top_resolvers = db.session.query(
+        Incident.resolved_by,
+        func.count(Incident.id).label('count')
+    ).filter(Incident.resolved_by != None).group_by(Incident.resolved_by).order_by(
+        func.count(Incident.id).desc()
+    ).limit(5).all()
+    
+    return render_template('reports.html',
+                          total_incidents=total_incidents,
+                          resolved_incidents=resolved_incidents,
+                          unresolved_incidents=unresolved_incidents,
+                          recent_incidents=recent_incidents,
+                          type_counts=type_counts,
+                          recent=recent,
+                          monthly_data=monthly_data,
+                          top_reporters=top_reporters,
+                          top_resolvers=top_resolvers)
+
+@app.route('/reports/export')
+@login_required
+def export_reports():
+
+    if not current_user.is_admin:
+        flash('Admin access required')
+        return redirect(url_for('dashboard'))
+
+    # Get optional filter from query parameter
+    filter_type = request.args.get('filter', 'all')
+    
+    query = Incident.query
+    
+    # Apply filters
+    if filter_type == 'unresolved':
+        query = query.filter(Incident.resolution == None)
+    elif filter_type == 'resolved':
+        query = query.filter(Incident.resolution != None)
+    elif filter_type == 'recent':
+        query = query.filter(Incident.timestamp >= datetime.utcnow() - timedelta(days=30))
+    
+    incidents = query.order_by(Incident.timestamp.desc()).all()
+    
+    # Create CSV in memory
+    si = StringIO()
+    writer = csv.writer(si)
+    writer.writerow([
+        'ID', 'Date/Time', 'Type', 'Reporter', 'Description', 
+        'Status', 'Resolved By', 'Resolution Date', 'Resolution'
+    ])
+    
+    for incident in incidents:
+        writer.writerow([
+            incident.id,
+            incident.timestamp.strftime('%Y-%m-%d %H:%M'),
+            incident.type_name,
+            incident.reporter_name,
+            incident.description,
+            'Resolved' if incident.resolution else 'Unresolved',
+            incident.resolved_by or '',
+            incident.resolved_timestamp.strftime('%Y-%m-%d %H:%M') if incident.resolved_timestamp else '',
+            incident.resolution or ''
+        ])
+    
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = f"attachment; filename=incidents_{filter_type}.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
+
+@app.route('/reports/detailed')
+@login_required
+def detailed_reports():
+
+    if not current_user.is_admin:
+        flash('Admin access required')
+        return redirect(url_for('dashboard'))
+
+    # Get filter parameters
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    status = request.args.get('status')
+    type_id = request.args.get('type_id')
+    
+    # Default date range (last 30 days)
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=30)
+    
+    if start_date_str and end_date_str:
+        start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        end_date = datetime.strptime(end_date_str, '%Y-%m-%d') + timedelta(days=1)  # Add a day to make inclusive
+    
+    # Build query with filters
+    query = Incident.query.filter(
+        Incident.timestamp >= start_date,
+        Incident.timestamp <= end_date
+    )
+    
+    if status == 'resolved':
+        query = query.filter(Incident.resolution != None)
+    elif status == 'unresolved':
+        query = query.filter(Incident.resolution == None)
+    
+    if type_id and type_id.isdigit():
+        query = query.filter(Incident.type_id == int(type_id))
+    
+    # Get incidents and incident types for filter dropdown
+    incidents = query.order_by(Incident.timestamp.desc()).all()
+    incident_types = IncidentType.query.all()
+    
+    # Calculate some statistics for the filtered results
+    stats = {
+        'total': len(incidents),
+        'resolved': sum(1 for i in incidents if i.resolution),
+        'unresolved': sum(1 for i in incidents if not i.resolution),
+        'avg_resolution_hours': 0
+    }
+    
+    # Calculate average resolution time
+    resolution_times = []
+    for incident in incidents:
+        if incident.resolution and incident.resolved_timestamp:
+            hours = (incident.resolved_timestamp - incident.timestamp).total_seconds() / 3600
+            resolution_times.append(hours)
+    
+    if resolution_times:
+        stats['avg_resolution_hours'] = round(sum(resolution_times) / len(resolution_times), 1)
+    
+    return render_template('detailed_reports.html',
+                          incidents=incidents,
+                          incident_types=incident_types,
+                          start_date=start_date,
+                          end_date=end_date - timedelta(days=1),  # Adjust for display
+                          selected_status=status,
+                          selected_type=type_id,
+                          stats=stats)
