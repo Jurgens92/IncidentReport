@@ -1,13 +1,18 @@
 from app import app, db
-from sqlalchemy import text
+from sqlalchemy import text, exc
 
 with app.app_context():
-    # Add the columns we need using SQLAlchemy text() for raw SQL
-    db.session.execute(text('ALTER TABLE incident ADD COLUMN resolution TEXT'))
-    db.session.execute(text('ALTER TABLE incident ADD COLUMN resolved_by VARCHAR(64)'))
-    db.session.execute(text('ALTER TABLE incident ADD COLUMN resolved_timestamp DATETIME'))
-    db.session.execute(text('ALTER TABLE incident ADD COLUMN resolved_by_user_id INTEGER REFERENCES user(id)'))
-    db.session.execute(text('ALTER TABLE incident ADD COLUMN ip_address VARCHAR(45)'))
+    # Safely add IP address column
+    try:
+        db.session.execute(text('ALTER TABLE incident ADD COLUMN ip_address VARCHAR(45)'))
+        print("Added ip_address column successfully!")
+    except exc.OperationalError as e:
+        if "duplicate column name" in str(e):
+            print("ip_address column already exists, skipping...")
+        else:
+            print(f"Error when adding ip_address column: {str(e)}")
+    
+    # Commit any successful changes
     db.session.commit()
     
-    print("Database updated successfully!")
+    print("Database update completed!")
