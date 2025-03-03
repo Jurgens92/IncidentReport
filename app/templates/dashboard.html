@@ -50,26 +50,28 @@
                         <td>{{ incident.ip_address or 'Unknown' }}</td>
                         {% endif %}
                         <td>
-                            {% if incident.resolution %}
-                            <a href="{{ url_for('view_resolution', incident_id=incident.id) }}" class="button success">Resolved</a>
-                            {% if current_user.is_admin %}
-                                <form method="POST" action="{{ url_for('unresolve_incident', incident_id=incident.id) }}" style="display: inline;">
-                                    <button type="submit" class="button danger">Unresolve</button>
-                                </form>
-                            {% endif %}
-                            {% else %}
-                                <a href="{{ url_for('resolve_incident', incident_id=incident.id) }}" class="button primary">Resolve</a>
-                            {% endif %}
-                            
-                            {% if current_user.is_admin %}
-                                <a href="{{ url_for('resolution_history', incident_id=incident.id) }}" class="button secondary">History</a>
-                            {% endif %}
-
-                            {% if current_user.is_admin %}
-                                <form method="POST" action="{{ url_for('delete_incident', incident_id=incident.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this incident? This action cannot be undone.');">
-                                    <button type="submit" class="button danger">Delete</button>
-                                </form>
-                            {% endif %}
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                {% if incident.resolution %}
+                                    <a href="{{ url_for('view_resolution', incident_id=incident.id) }}" class="button success">Resolved</a>
+                                    {% if current_user.is_admin %}
+                                        <form method="POST" action="{{ url_for('unresolve_incident', incident_id=incident.id) }}" style="display: inline-block;">
+                                            <button type="submit" class="button danger">Unresolve</button>
+                                        </form>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{{ url_for('resolve_incident', incident_id=incident.id) }}" class="button primary">Resolve</a>
+                                {% endif %}
+                                
+                                {% if current_user.is_admin %}
+                                    <a href="{{ url_for('resolution_history', incident_id=incident.id) }}" class="button secondary">History</a>
+                                {% endif %}
+                        
+                                {% if current_user.is_admin %}
+                                    <form method="POST" action="{{ url_for('delete_incident', incident_id=incident.id) }}" style="display: inline-block;" onsubmit="return confirm('Are you sure you want to delete this incident? This action cannot be undone.');">
+                                        <button type="submit" class="button danger">Delete</button>
+                                    </form>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
