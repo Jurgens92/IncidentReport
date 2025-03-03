@@ -576,3 +576,25 @@ td form .button.danger {
     height: 42px;
     margin-bottom: 1.5rem;
 }
+
+/* Action buttons container for incident table */
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+  }
+  
+  /* Make all buttons in action cell the same height */
+  .action-buttons .button,
+  .action-buttons form,
+  .action-buttons form button {
+    margin: 0 !important;
+    height: 38px;
+  }
+  
+  /* Override the form display to prevent line breaks */
+  .action-buttons form {
+    display: inline-flex !important;
+    margin: 0 !important;
+  }
