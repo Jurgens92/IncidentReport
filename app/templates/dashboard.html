@@ -33,7 +33,9 @@
                         <th>Reporter</th>
                         <th>Type</th>
                         <th>Description</th>
+                        {% if current_user.is_admin %}
                         <th>IP Address</th>
+                        {% endif %}
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -44,7 +46,9 @@
                         <td>{{ incident.reporter_name }}</td>
                         <td>{{ incident.type_name }}</td>
                         <td>{{ incident.description }}</td>
+                        {% if current_user.is_admin %}
                         <td>{{ incident.ip_address or 'Unknown' }}</td>
+                        {% endif %}
                         <td>
                             {% if incident.resolution %}
                             <a href="{{ url_for('view_resolution', incident_id=incident.id) }}" class="button success">Resolved</a>
