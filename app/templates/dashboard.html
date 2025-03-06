@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -22,6 +23,25 @@
                 {% endif %}
                 <a href="{{ url_for('report_incident') }}" class="button primary">Report Incident</a>
                 <a href="{{ url_for('logout') }}" class="button danger">Logout</a>
+            </div>
+        </div>
+
+        
+        <div class="filter-controls content-box">
+            <h3>Filter Incidents</h3>
+            <div class="filter-buttons">
+                <a href="{{ url_for('dashboard', filter_type='all') }}" 
+                class="button {% if current_filter == 'all' %}primary{% else %}secondary{% endif %}">
+                    All Incidents
+                </a>
+                <a href="{{ url_for('dashboard', filter_type='unresolved') }}" 
+                class="button {% if current_filter == 'unresolved' %}primary{% else %}secondary{% endif %}">
+                    Unresolved Incidents
+                </a>
+                <a href="{{ url_for('dashboard', filter_type='resolved') }}" 
+                class="button {% if current_filter == 'resolved' %}primary{% else %}secondary{% endif %}">
+                    Resolved Incidents
+                </a>
             </div>
         </div>
         
