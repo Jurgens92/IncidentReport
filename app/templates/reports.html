@@ -150,7 +150,7 @@
                 <tbody>
                     {% for incident in recent %}
                     <tr>
-                        <td>{{ incident.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ format_datetime(incident.timestamp) }}</td>
                         <td>{{ incident.type_name }}</td>
                         <td>{{ incident.reporter_name }}</td>
                         <td>

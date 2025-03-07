@@ -42,6 +42,13 @@
                     <input type="email" id="from_address" name="from_address" 
                            value="{{ settings.from_address or '' }}" required>
                 </div>
+                <div class="form-group">
+                    <label for="timezone">Timezone</label>
+                    <select id="timezone" name="timezone" required>
+                        <option value="UTC" {% if settings.timezone == 'UTC' %}selected{% endif %}>UTC</option>
+                        <option value="Africa/Johannesburg" {% if settings.timezone == 'Africa/Johannesburg' %}selected{% endif %}>South Africa (GMT+2)</option>
+                    </select>
+                </div>
                 <button type="submit" class="button primary">Save Settings</button>
             </form>
         </div>
