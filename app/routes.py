@@ -57,12 +57,24 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/dashboard')
+@app.route('/dashboard/<filter_type>')
 @login_required
-def dashboard():
-    incidents = Incident.query.join(IncidentType, isouter=True) \
-        .join(Personnel, isouter=True) \
-        .order_by(Incident.timestamp.desc()).all()
-    return render_template('dashboard.html', incidents=incidents)
+def dashboard(filter_type='unresolved'):
+    # Create base query
+    query = Incident.query.join(IncidentType, isouter=True) \
+        .join(Personnel, isouter=True)
+    
+    # Apply filter
+    if filter_type == 'resolved':
+        query = query.filter(Incident.resolution != None)
+    elif filter_type == 'unresolved':
+        query = query.filter(Incident.resolution == None)
+    # 'all' filter doesn't need additional conditions
+    
+    # Get incidents with ordered by timestamp desc
+    incidents = query.order_by(Incident.timestamp.desc()).all()
+    
+    return render_template('dashboard.html', incidents=incidents, current_filter=filter_type)
 
 @app.route('/report_incident', methods=['GET', 'POST'])
 @login_required

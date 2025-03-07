@@ -44,10 +44,30 @@
             
                 <div class="button-group" style="max-width: 300px; margin: 1rem auto;">
                     <a href="{{ url_for('dashboard') }}" class="button cancel-btn">Cancel</a>
-                    <button type="submit" class="button submit-btn">Submit Resolution</button>
+                    <button type="submit" id="submitBtn" class="button submit-btn">Submit Resolution</button>
                 </div>
             </form>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            form.addEventListener('submit', function(e) {
+                if (submitBtn.disabled) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Processing...';
+                submitBtn.style.backgroundColor = '#7a7a7a';
+                submitBtn.style.cursor = 'not-allowed';
+                
+                return true;
+            });
+        });
+    </script>
 </body>
 </html>

@@ -44,12 +44,38 @@
                     ></textarea>
                 </div>
             
-                <div class="button-group" style="max-width: 300px; margin: 1rem auto;">  <!-- Added max-width and centered -->
+                <div class="button-group" style="max-width: 300px; margin: 1rem auto;">
                     <a href="{{ url_for('dashboard') }}" class="button cancel-btn">Cancel</a>
-                    <button type="submit" class="button submit-btn">Submit</button>
+                    <button type="submit" id="submitBtn" class="button submit-btn">Submit</button>
                 </div>
+                
+
             </form>
         </div>
     </div>
+                    <!-- Add this JavaScript at the bottom of the file, before the closing </body> tag -->
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const form = document.querySelector('form');
+                            const submitBtn = document.getElementById('submitBtn');
+                            
+                            form.addEventListener('submit', function(e) {
+                                // Prevent multiple submissions
+                                if (submitBtn.disabled) {
+                                    e.preventDefault();
+                                    return false;
+                                }
+                                
+                                // Disable the button
+                                submitBtn.disabled = true;
+                                submitBtn.textContent = 'Processing...';
+                                submitBtn.style.backgroundColor = '#7a7a7a';
+                                submitBtn.style.cursor = 'not-allowed';
+                                
+                                // Let the form submit
+                                return true;
+                            });
+                        });
+                    </script>
 </body>
 </html>
