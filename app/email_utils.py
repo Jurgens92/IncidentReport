@@ -57,6 +57,9 @@ Description:
 
 def send_resolution_email(incident):
     """Send email notification for a resolved incident."""
+    if incident.incident_type is None or not incident.incident_type.email_to:
+        print(f"No email notification for incident {incident.id}: Missing incident type or email")
+        return
     # Skip if no email addresses configured
     if not incident.incident_type.email_to:
         return
