@@ -14,7 +14,7 @@
         <div class="content-box" style="max-width: 600px; margin: 0 auto;">
             <div class="incident-details">
                 <h3>Incident Information</h3>
-                <p><strong>Date/Time:</strong> {{ incident.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                <p><strong>Date/Time:</strong> {{ format_datetime(incident.timestamp) }}</p>
                 <p><strong>Type:</strong> {{ incident.type_name }}</p>
                 <p><strong>Reporter:</strong> {{ incident.reporter_name }}</p>
                 <p><strong>Description:</strong> {{ incident.description }}</p>
