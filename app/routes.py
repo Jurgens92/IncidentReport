@@ -275,7 +275,7 @@ def manage_email_settings():
         if request.form['smtp_password']:  # Only update if new password provided
             settings.smtp_password = request.form['smtp_password']
         settings.from_address = request.form['from_address']
-        settings.timezone = request.form['timezone']  # Add this line
+        settings.timezone = request.form['timezone'] 
         
         try:
             db.session.commit()

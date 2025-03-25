@@ -63,7 +63,7 @@ class EmailSettings(db.Model):
     smtp_username = db.Column(db.String(128))
     smtp_password = db.Column(db.String(128))
     from_address = db.Column(db.String(128))
-    timezone = db.Column(db.String(64), default='UTC')  # Add this line
+    timezone = db.Column(db.String(64), default='UTC')  
 
 class LoginLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
