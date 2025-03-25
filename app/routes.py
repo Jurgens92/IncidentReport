@@ -27,18 +27,22 @@ def get_local_time(dt, timezone_str='UTC'):
 @app.context_processor
 def inject_datetime_formatter():
     def format_datetime(dt, format_str='%Y-%m-%d %H:%M'):
-        """Format datetime using the application timezone setting."""
         if dt is None:
             return ""
         
+        # Get timezone from settings
         settings = EmailSettings.query.first()
-        tz = settings.timezone if settings and hasattr(settings, 'timezone') else 'UTC'
+        timezone_str = settings.timezone if settings and settings.timezone else 'UTC'
         
         try:
-            local_dt = get_local_time(dt, tz)
+            # Convert to timezone
+            if dt.tzinfo is None:
+                dt = pytz.utc.localize(dt)
+            local_tz = pytz.timezone(timezone_str)
+            local_dt = dt.astimezone(local_tz)
             return local_dt.strftime(format_str)
-        except:
-            # Fallback to original UTC time if conversion fails
+        except Exception as e:
+            print(f"Error formatting datetime: {str(e)}")
             return dt.strftime(format_str)
             
     return dict(format_datetime=format_datetime)
@@ -263,7 +267,6 @@ def manage_email_settings():
     if not settings:
         settings = EmailSettings()
         db.session.add(settings)
-        db.session.commit()
     
     if request.method == 'POST':
         settings.smtp_server = request.form['smtp_server']
@@ -272,10 +275,7 @@ def manage_email_settings():
         if request.form['smtp_password']:  # Only update if new password provided
             settings.smtp_password = request.form['smtp_password']
         settings.from_address = request.form['from_address']
-        
-        # Handle timezone field safely
-        if 'timezone' in request.form and hasattr(settings, 'timezone'):
-            settings.timezone = request.form['timezone']
+        settings.timezone = request.form['timezone']  # Add this line
         
         try:
             db.session.commit()
