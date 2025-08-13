@@ -2,6 +2,29 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from app.models import EmailSettings
+import pytz
+
+
+def _get_timezone():
+    """Return a pytz timezone from settings, defaulting to UTC on error."""
+    settings = EmailSettings.query.first()
+    tz_name = (settings.timezone if settings and settings.timezone else 'UTC')
+    try:
+        return pytz.timezone(tz_name), tz_name
+    except Exception:
+        # Fallback to UTC if the stored timezone is invalid
+        return pytz.utc, 'UTC'
+
+
+def _format_dt_local(dt, fmt='%Y-%m-%d %H:%M'):
+    """Format a datetime in the configured timezone, assuming incoming dt is UTC or naive UTC."""
+    if dt is None:
+        return ""
+    tz, _ = _get_timezone()
+    # Treat naive datetimes as UTC (as the app stores with datetime.utcnow)
+    if dt.tzinfo is None:
+        dt = pytz.utc.localize(dt)
+    return dt.astimezone(tz).strftime(fmt)
 
 def send_incident_email(incident):
     """Send email notification for an incident."""
@@ -27,12 +50,13 @@ def send_incident_email(incident):
     msg['Subject'] = f"New {incident.incident_type.name} Incident Report"
 
     # Create message body
+    _, tz_name = _get_timezone()
     body = f"""
 New Incident Report
 
-Date/Time: {incident.timestamp.strftime('%Y-%m-%d %H:%M')}
+Date/Time ({tz_name}): {_format_dt_local(incident.timestamp)}
 Type: {incident.incident_type.name}
-Reported By: {incident.reporter.name}
+Reported By: {getattr(incident.reporter, 'name', None) or incident.reporter_name}
 Reported From IP: {incident.ip_address or 'Unknown'}
 
 Description:
@@ -82,17 +106,18 @@ def send_resolution_email(incident):
     msg['Subject'] = f"RESOLVED: {incident.incident_type.name} Incident"
 
     # Create message body
+    _, tz_name = _get_timezone()
     body = f"""
 Incident Resolved
 
 Original Incident:
-Date/Time: {incident.timestamp.strftime('%Y-%m-%d %H:%M')}
+Date/Time ({tz_name}): {_format_dt_local(incident.timestamp)}
 Type: {incident.incident_type.name}
 Reported By: {incident.reporter_name}
 Description: {incident.description}
 
 Resolution:
-Date/Time: {incident.resolved_timestamp.strftime('%Y-%m-%d %H:%M')}
+Date/Time ({tz_name}): {_format_dt_local(incident.resolved_timestamp)}
 Resolved By: {incident.resolved_by}
 Resolution Details: {incident.resolution}
 """
